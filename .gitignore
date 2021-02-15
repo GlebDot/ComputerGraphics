@@ -30,3 +30,17 @@
 *.exe
 *.out
 *.app
+
+#useless IDE stuff
+*.xml
+*.iml
+*.exe.recipe
+*.tlog
+*.log
+*.db
+*.ipch
+*.vcxproj*
+*.idb
+*.pdb
+*.ilk
+*.suo
