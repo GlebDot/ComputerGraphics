@@ -1,7 +1,18 @@
 #include <stdlib.h>
 #include <glut.h>
 #include <iostream>
-#include "Actions.h"
+
+
+#define ACTION_GL_POINTS '1'
+#define ACTION_GL_LINES '2'
+#define ACTION_GL_LINE_STRIP '3'
+#define ACTION_GL_LINE_LOOP '4'
+#define ACTION_GL_TRIANGLES '5'
+#define ACTION_GL_TRIANGLE_STRIP '6'
+#define ACTION_GL_TRIANGLE_FAN '7'
+#define ACTION_GL_QUADS '8'
+#define ACTION_GL_QUAD_STRIP '9'
+#define ACTION_GL_POLYGON '0'
 
 GLint Width = 512;
 GLint Height = 512;
