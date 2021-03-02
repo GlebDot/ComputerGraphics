@@ -1,0 +1,2 @@
+D:\LETI\3rd\ComputerGraphics\lab03\Debug\lab03.exe
+D:\LETI\3rd\ComputerGraphics\lab03\Debug\lab03.pdb
