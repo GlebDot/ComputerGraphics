@@ -4,6 +4,10 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 void framebuffer_szie_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -11,22 +15,10 @@ void processInput(GLFWwindow* window);
 int createShaderProgram(std::string vertexShaderFileName, std::string fragmentShaderFileName);
 void checkErrors(unsigned int shader, std::string type);
 
+void genDensePlane(std::vector<int>& indicies, std::vector<float>& verticies, unsigned int size = 3, float scale = 0.5f);
+
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 800;
-
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, -aPos.y, aPos.y, 1.0);\n"
-"}\0";
-
-const char* fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"   FragColor = vec4(0.5f, 1.0f, 0.2f, 1.0f);\n"
-"}\n\0";
 
 int main() {
 	glfwInit();
@@ -50,60 +42,24 @@ int main() {
 		return -1;
 	}
 
-
+	glEnable(GL_DEPTH_TEST);
 
 	int shaderProgram = createShaderProgram("vertexShader.glsl", "fragmentShader.glsl");
 
-	////VERTEX SHADER
-	//int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	//glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	//glCompileShader(vertexShader);
+	std::vector<float> vertexArr;
+	std::vector<int> indexArr;
+	genDensePlane(indexArr, vertexArr, 50U);
 
-	//int success;
-	//char infoLog[512];
-	//glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	//if (!success) {
-	//	glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-	//	std::cout << "ERROR:POSHEL:NAHYI:FROM:VERTEX:SHADER\n" << infoLog << std::endl;
+	//for (int i = 0; i < vertexArr.size() / 3; i++) {
+	//	std::cout << vertexArr[i * 3] << "\t" << vertexArr[i * 3 + 1] << "\t" << vertexArr[i * 3 + 2] << std::endl;
 	//}
 
-
-
-	////FRAGMENT SHADER
-	//int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	//glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	//glCompileShader(fragmentShader);
-
-	//glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	//if (!success) {
-	//	glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-	//	std::cout << "ERROR:POSHEL:NAHYI:FROM:FRAGMENT:SHADER\n" << infoLog << std::endl;
+	//for (int i = 0; i < indexArr.size() / 3; i++) {
+	//	std::cout << indexArr[i * 3] << "\t" << indexArr[i * 3 + 1] << "\t" << indexArr[i * 3 + 2] << std::endl;
 	//}
 
-
-	////SHADER PROGRAMM
-	//int shaderProgram = glCreateProgram();
-	//glAttachShader(shaderProgram, vertexShader);
-	//glAttachShader(shaderProgram, fragmentShader);
-	//glLinkProgram(shaderProgram);
-
-	//glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	//if (!success) {
-	//	glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-	//	std::cout << "ERROR:POSHEL:NAHYI:FROM:SHADER:PROGRAM\n" << infoLog << std::endl;
-	//}
-
-	//glDeleteShader(vertexShader);
-	//glDeleteShader(fragmentShader);
-
-	float verticies[] = {
-		0.5f, 0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f
-	};
-
-	unsigned int indices[] = {0, 1, 3, 1, 2, 3};
+	//std::cout << sizeof(verticies) << std::endl;
+	//std::cout << vertexArr.size() * 4 << std::endl;
 
 	unsigned int VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
@@ -114,10 +70,10 @@ int main() {
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertexArr.size() * 4, vertexArr.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexArr.size() * 4, indexArr.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (float*)0);
 	glEnableVertexAttribArray(0);
@@ -136,11 +92,27 @@ int main() {
 		processInput(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glm::mat4 model = glm::mat4(1.0f); // сначала инициализируем единичную матрицу
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 projection = glm::mat4(1.0f);
+		model = glm::rotate(model, (float)glfwGetTime() / 2 * glm::radians(-55.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, -0.75f, -3.0f));
+		view = glm::rotate(view, glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+
+		unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
+		unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
+		// ...передаем их в шейдеры (разными способами)
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, &projection[0][0]);
 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, indexArr.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -248,6 +220,39 @@ void checkErrors(unsigned int shader, std::string type) {
 		{
 			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
 			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		}
+	}
+}
+
+void genDensePlane(std::vector<int>& indicies, std::vector<float>& verticies, unsigned int size, float scale) {
+	const float space = scale * 2.0f / (size - 1);
+	for (float z = scale; z >= -scale; z -= space) {
+		for (float x = scale; x >= -scale; x -= space) {
+			verticies.push_back(x);
+			verticies.push_back(0.0f);
+			verticies.push_back(z);
+		}
+	}
+
+	int trianglesNumber = 2 * (size - 1) * (size - 1);
+	int firstIndex = 0;
+	for (int i = 0; i < trianglesNumber; i++) {
+		indicies.push_back(firstIndex);
+		if ((firstIndex + 1) % size == 0) {
+			indicies.push_back(firstIndex + size - 1);
+			indicies.push_back(firstIndex + size);
+			firstIndex++;
+		}
+		else {
+			if ((i + 1) % 2 == 1) {
+				indicies.push_back(firstIndex + 1);
+				indicies.push_back(firstIndex + size);
+				firstIndex++;
+			}
+			else {
+				indicies.push_back(firstIndex + size - 1);
+				indicies.push_back(firstIndex + size);
+			}
 		}
 	}
 }
