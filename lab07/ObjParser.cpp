@@ -52,12 +52,12 @@ void ObjParser::parseFile(std::string filename)
 
 void ObjParser::displayObject()
 {
-	glTranslatef(TranslateX, TranslateY, 0.0f);
+	glTranslatef(TranslateX, TranslateY, TranslateZ);
 	glRotatef(RotatePitch, 0.0f, 1.0f, 0.0f);
 	glRotatef(RotateYaw, 0.0f, 0.0f, 1.0f);
 	glShadeModel(GL_SMOOTH);
 	glColor3f(0.5, 0.5, 0.5);
-	
+
 	glBegin(GL_TRIANGLES);
 	for (int i = 0; i < vertexIndicies.size(); i++) {
 		glNormal3f(normals[normalIndicies[i] - 1].x, normals[normalIndicies[i] - 1].y, normals[normalIndicies[i] - 1].z);
@@ -66,10 +66,11 @@ void ObjParser::displayObject()
 	glEnd();
 }
 
-void ObjParser::translateObject(float x, float y)
+void ObjParser::translateObject(float x, float y, float z)
 {
 	TranslateX += x;
 	TranslateY += y;
+	TranslateZ += z;
 }
 
 void ObjParser::rotateObject(float pitch, float yaw)

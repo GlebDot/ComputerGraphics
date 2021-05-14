@@ -21,7 +21,7 @@ public:
 
 	void displayObject();
 
-	void translateObject(float x, float y);
+	void translateObject(float x = 0, float y = 0, float z = 0);
 	void rotateObject(float pitch, float yaw);
 
 protected:
@@ -33,6 +33,7 @@ protected:
 
 	float TranslateX = 0.0f;
 	float TranslateY = 0.0f;
+	float TranslateZ = 0.0f;
 
 	float RotateYaw = 0.0f;
 	float RotatePitch = 0.0f;
